@@ -63,7 +63,7 @@
         },
         methods: {
             download() {
-                fetch("http://localhost:3000/api/downloadManager", {
+                fetch("/api/downloadManager", {
                     method: "POST",
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(this.form)
@@ -82,7 +82,7 @@
                 }
             },
             getDownloadManager() {
-                fetch("http://localhost:3000/api/downloadManager")
+                fetch("/api/downloadManager")
                     .then(res => {
                         return res.json();
                     })
