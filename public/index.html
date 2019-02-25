@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Download Manager</title>
+</head>
+<body>
+<div id="app">
+    <h1 class="text-center">Download Manager</h1>
+
+    <div class="container">
+        <p>
+            URL :
+            <input type="text" class="form-control" v-model="form.url" @blur="autoFillName">
+        </p>
+        <p>
+            Nom du fichier :
+            <input type="text" class="form-control" v-model="form.name">
+        </p>
+        <p>
+            <button class="btn btn-block btn-primary" @click="download">Donwload</button>
+        </p>
+
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-action"  v-for="file in downloadManager.files">
+                <div class="row">
+                    <div class="col-4">
+                        {{ file.name }}
+                    </div>
+                    <div class="col-8">
+                        <div class="progress" v-if="file.status === 'Downloading'" style="height: 30px">
+                            <div class="progress-bar" role="progressbar" :style="getWidthOfProgressBar(file)" :aria-valuenow="file.percentageDone * 100" aria-valuemin="0" aria-valuemax="100">{{ Math.round((file.percentageDone) * 100) }} %</div>
+                        </div>
+
+                        <div class="progress" v-if="file.status === 'Completed'" style="height: 30px">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Terminé</div>
+                        </div>
+
+                        <div class="progress" v-if="file.status === 'Error'" style="height: 30px">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Une erreur s'est produite</div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            form: {
+                url: "",
+                name: ""
+            },
+            downloadManager: {files: []}
+        },
+        methods: {
+            download() {
+                fetch("http://localhost:3000/api/downloadManager", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.form)
+                })
+                    .then(res => {
+                        return res.json();
+                    })
+                    .then(data => {
+                        this.downloadManager = data;
+                    });
+            },
+            autoFillName() {
+                if(this.form.name === "") {
+                    let name = this.form.url.split("/");
+                    this.form.name = name[name.length -1];
+                }
+            },
+            getDownloadManager() {
+                fetch("http://localhost:3000/api/downloadManager")
+                    .then(res => {
+                        return res.json();
+                    })
+                    .then(data => {
+                        this.downloadManager = data;
+                    });
+            },
+            getWidthOfProgressBar(file) {
+                return `width: ${file.percentageDone * 100}%`;
+            },
+            autoRefresh() {
+                setTimeout(() => {
+                    this.getDownloadManager();
+                    this.autoRefresh();
+                }, 5000);
+            }
+        },
+        mounted() {
+            this.getDownloadManager();
+            this.autoRefresh();
+        }
+    })
+</script>
+</body>
+</html>
