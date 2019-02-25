@@ -26,6 +26,7 @@ module.exports = function(url, name) {
                 this.status = "Completed";
             });
             stream.on('error', (error) => {
+                console.error(error);
                 this.status = "Error";
             });
         },
